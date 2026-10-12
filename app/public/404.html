@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>도배·장판 견적관리</title>
+    <script>
+      const path = window.location.pathname;
+      const firstSegment = path.split("/").filter(Boolean)[0];
+      const base = firstSegment === "wallpaper-estimate" ? "/wallpaper-estimate/" : "/";
+      window.location.replace(`${base}?spa=${encodeURIComponent(path + window.location.search + window.location.hash)}`);
+    </script>
+  </head>
+  <body>
+    페이지를 여는 중입니다.
+  </body>
+</html>

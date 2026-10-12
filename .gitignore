@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.*
+app/node_modules/
+app/dist/
+source-package/
+private/
+*.local
+*.tsbuildinfo
+app/vite.config.js
+app/vite.config.d.ts

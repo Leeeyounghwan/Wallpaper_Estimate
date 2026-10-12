@@ -1,0 +1,311 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_version": "2026-10-12-conversation-v1",
+  "locale": "ko-KR",
+  "currency": "KRW",
+  "policies": {
+    "quote_price_basis": "retail",
+    "show_wholesale_to_admin_only": true,
+    "customer_only_show_estimate_amount": true,
+    "extra_cost_policy": "never_add",
+    "materials_rounding": "ceil_to_purchase_unit",
+    "supplies_quantity_basis": "actual_used_wallpaper_pyeong",
+    "vat_calculation": null,
+    "vat_notice": "부가세 포함/별도/면세 여부와 산식이 미등록되어 부가세와 최종 지급금액 확정 불가",
+    "flooring_default_thickness": "1.8T",
+    "do_not_estimate_missing": true,
+    "no_nearest_area_fallback": true,
+    "no_reverse_area_mapping": true,
+    "default_product_id": null,
+    "labor_duration_note": "등록된 배치 인원의 일일 단가를 1일분으로 합산. 추가 시공일수 산식은 미등록.",
+    "price_changed_quote_snapshots_are_immutable": true
+  },
+  "area_conversion": {
+    "source_area_type": "평형",
+    "target_area_type": "전용",
+    "explicit_table": {
+      "24": 17,
+      "25": 18,
+      "32": 25,
+      "34": 27
+    },
+    "fallback": {
+      "type": "subtract_constant",
+      "value_pyeong": 7
+    },
+    "reverse_automatic": false,
+    "priority": "explicit_table_then_fallback"
+  },
+  "materials": [
+    {
+      "id": "SHINHAN_SKETCH",
+      "category": "silk",
+      "brand": "신한벽지",
+      "name": "스케치",
+      "purchase_unit_pyeong": 5,
+      "unit_label": "5평 단위",
+      "retail_krw": 50000,
+      "supplies_krw_per_actual_pyeong": 4000,
+      "supplies_included_in_retail": false
+    },
+    {
+      "id": "SHINHAN_LIVING",
+      "category": "silk",
+      "brand": "신한벽지",
+      "name": "리빙",
+      "purchase_unit_pyeong": 5,
+      "unit_label": "5평 단위",
+      "retail_krw": 55000,
+      "supplies_krw_per_actual_pyeong": 4500,
+      "supplies_included_in_retail": false
+    },
+    {
+      "id": "SHINHAN_IRIS",
+      "category": "wide_hapji",
+      "brand": "신한벽지",
+      "name": "아이리스",
+      "purchase_unit_pyeong": 5,
+      "unit_label": "5평 단위",
+      "retail_krw": 30000,
+      "supplies_krw_per_actual_pyeong": 3000,
+      "supplies_included_in_retail": false
+    },
+    {
+      "id": "SHINHAN_FEINHEIM",
+      "category": "narrow_hapji",
+      "brand": "신한벽지",
+      "name": "파인하임",
+      "purchase_unit_pyeong": 40,
+      "unit_label": "1Box (40평)",
+      "retail_krw": 176000,
+      "supplies_krw_per_actual_pyeong": 0,
+      "supplies_included_in_retail": true
+    }
+  ],
+  "wallpaper_usage": [
+    {
+      "category": "silk",
+      "area_type": "평형",
+      "entries": {
+        "17": 30,
+        "19": 36,
+        "22": 45,
+        "24": 60,
+        "32": 80,
+        "41": 100
+      },
+      "building_scope": "generic"
+    },
+    {
+      "category": "wide_hapji",
+      "area_type": "평형",
+      "entries": {
+        "17": 30,
+        "19": 36,
+        "22": 45,
+        "24": 60,
+        "32": 80,
+        "41": 100
+      },
+      "building_scope": "generic"
+    },
+    {
+      "category": "narrow_hapji",
+      "area_type": "전용",
+      "entries": {
+        "9": 40,
+        "10": 40,
+        "12": 40,
+        "14": 50,
+        "17": 60,
+        "20": 60
+      },
+      "building_scope": "generic"
+    }
+  ],
+  "labor_requirements": [
+    {
+      "category": "silk",
+      "area_type": "평형",
+      "entries": {
+        "17": {
+          "helper": 1,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "19": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 2
+        },
+        "22": {
+          "helper": 1,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "24": {
+          "helper": 1,
+          "intermediate": 0,
+          "expert": 3
+        },
+        "32": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 5
+        },
+        "41": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 7
+        }
+      },
+      "building_scope": "generic"
+    },
+    {
+      "category": "wide_hapji",
+      "area_type": "평형",
+      "entries": {
+        "17": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "19": {
+          "helper": 1,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "22": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 2
+        },
+        "24": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 2
+        },
+        "32": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 4
+        },
+        "41": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 5
+        }
+      },
+      "building_scope": "generic"
+    },
+    {
+      "category": "narrow_hapji",
+      "area_type": "전용",
+      "entries": {
+        "9": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "10": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "12": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "14": {
+          "helper": 1,
+          "intermediate": 0,
+          "expert": 1
+        },
+        "17": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 2
+        },
+        "20": {
+          "helper": 0,
+          "intermediate": 0,
+          "expert": 2
+        }
+      },
+      "building_scope": "generic"
+    }
+  ],
+  "flooring_usage": null,
+  "flooring_labor_requirements": null,
+  "catalogs": [
+    {
+      "id": "CAT_ADOBE_1",
+      "name": "Adobe 카탈로그 1",
+      "brand": null,
+      "product_relation": null,
+      "url": "https://indd.adobe.com/view/9f92b16b-0de9-4c74-a60e-2874f298261c",
+      "verification": "미검증"
+    },
+    {
+      "id": "CAT_ADOBE_2",
+      "name": "Adobe 카탈로그 2",
+      "brand": null,
+      "product_relation": null,
+      "url": "https://indd.adobe.com/view/18d125dd-26a7-4eff-823b-7150890443cb",
+      "verification": "미검증"
+    },
+    {
+      "id": "CAT_LX_SUMTILE",
+      "name": "LX 지인 샘플북 - sumtile",
+      "brand": "LX Z:IN",
+      "product_relation": null,
+      "url": "https://www.lxzin.com/samplebook/sumtile/",
+      "verification": "미검증 - 추적 쿼리 제거"
+    },
+    {
+      "id": "CAT_LX_THERAPY",
+      "name": "LX 지인 샘플북 - therapy",
+      "brand": "LX Z:IN",
+      "product_relation": null,
+      "url": "https://www.lxzin.com/samplebook/therapy/",
+      "verification": "미검증 - 추적 쿼리 제거"
+    }
+  ],
+  "customer_notice": "해당 견적은 보내주신 값을 토대로 산정한 임시 견적입니다. 현장 실측 및 상담 후 금액이 변동될 수 있습니다.",
+  "daily_labor_rates_krw": {
+    "helper": 180000,
+    "intermediate": 230000,
+    "expert": 280000
+  },
+  "flooring_materials": [
+    {
+      "id": "NOKSU_18T",
+      "thickness": "1.8T",
+      "brand": "녹수",
+      "name": "녹수1.8T",
+      "purchase_unit_pyeong": 1,
+      "retail_krw": 35000,
+      "supplies_krw_per_actual_pyeong": 1000
+    },
+    {
+      "id": null,
+      "thickness": "2.0T",
+      "brand": null,
+      "name": null,
+      "purchase_unit_pyeong": null,
+      "retail_krw": null,
+      "supplies_krw_per_actual_pyeong": null
+    },
+    {
+      "id": null,
+      "thickness": "2.2T",
+      "brand": null,
+      "name": null,
+      "purchase_unit_pyeong": null,
+      "retail_krw": null,
+      "supplies_krw_per_actual_pyeong": null
+    }
+  ],
+  "visibility": "public_retail_only; no wholesale values"
+}

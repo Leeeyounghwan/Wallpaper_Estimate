@@ -1,6 +1,6 @@
 :root {
   color: #18202a;
-  background: #fbfaf7;
+  background: #f5f8f7;
   font-family:
     Inter, "Pretendard", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
@@ -38,9 +38,9 @@ a {
 .app-shell {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, #fffdf9 0, #fbfaf7 360px),
-    radial-gradient(circle at top left, rgba(218, 155, 96, 0.14), transparent 26rem),
-    #fbfaf7;
+    linear-gradient(180deg, #ffffff 0, #f5f8f7 360px),
+    radial-gradient(circle at top left, rgba(42, 122, 111, 0.1), transparent 26rem),
+    #f5f8f7;
 }
 
 .topbar {
@@ -88,7 +88,7 @@ button svg,
   overflow-x: auto;
   padding: 0.2rem;
   border-radius: 0.6rem;
-  background: #f1eee8;
+  background: #edf3f0;
 }
 
 .topbar nav a,
@@ -113,19 +113,18 @@ button svg,
 
 .hero-band {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
-  gap: clamp(1rem, 4vw, 2.25rem);
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 20%);
+  gap: 0;
   align-items: center;
   max-width: 1180px;
   margin: 1rem auto 0;
-  padding: clamp(1.4rem, 4vw, 3rem);
   color: #18202a;
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 18px 42px rgba(31, 43, 51, 0.1);
   background:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.96) 0%, rgba(239, 247, 242, 0.98) 100%),
-    radial-gradient(circle at 82% 18%, rgba(217, 95, 63, 0.12), transparent 18rem);
+    linear-gradient(110deg, rgba(255, 255, 255, 0.98) 0%, rgba(242, 249, 247, 0.96) 62%, rgba(255, 255, 255, 0.96) 100%),
+    radial-gradient(circle at 72% 28%, rgba(42, 122, 111, 0.08), transparent 20rem);
 }
 
 .hero-band h1,
@@ -150,29 +149,38 @@ button svg,
   font-size: 1.08rem;
 }
 
+.hero-shop {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 0.45rem;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid #cfe3dd;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #0f5f55;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
 .hero-copy {
   min-width: 0;
+  padding: clamp(1.4rem, 4vw, 3rem);
 }
 
 .hero-side {
   display: grid;
-  gap: 0.9rem;
-}
-
-.hero-logo-panel {
-  display: grid;
   place-items: center;
-  min-height: 176px;
-  padding: 0.9rem;
-  border: 1px solid rgba(31, 43, 51, 0.08);
-  border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 28px rgba(31, 43, 51, 0.09);
+  align-self: stretch;
+  min-width: 0;
+  padding: clamp(1rem, 2.2vw, 1.6rem);
+  background: linear-gradient(90deg, rgba(247, 251, 250, 0.18) 0%, rgba(255, 255, 255, 0.78) 46%, rgba(255, 255, 255, 0.94) 100%);
 }
 
 .hero-logo {
-  width: min(100%, 230px);
-  max-height: 160px;
+  width: min(100%, 180px);
+  max-height: 150px;
+  filter: drop-shadow(0 12px 22px rgba(31, 43, 51, 0.06));
   object-fit: contain;
 }
 
@@ -210,9 +218,9 @@ button svg,
 }
 
 .business-hours.closed {
-  border-color: #efc0b6;
-  background: #fff0ee;
-  color: #c0331f;
+  border-color: #f0c7bd;
+  background: #fff4f1;
+  color: #b43f2f;
 }
 
 .eyebrow {
@@ -223,7 +231,7 @@ button svg,
 }
 
 .hero-band .eyebrow {
-  color: #c85839;
+  color: #2f7d72;
 }
 
 .action-stack,
@@ -240,11 +248,11 @@ button svg,
   justify-self: stretch;
   gap: 0.45rem;
   padding: 0.62rem 0.72rem;
-  border: 1px solid #e8673f;
+  border: 1px solid #2f7d72;
   border-left-width: 4px;
   border-radius: 0.72rem;
-  background: linear-gradient(90deg, #fff0e8 0%, #fff8f3 100%);
-  color: #842c17;
+  background: linear-gradient(90deg, #e8f4f0 0%, #f7fbfa 100%);
+  color: #134f47;
   font-size: 0.95rem;
   font-weight: 900;
   line-height: 1.35;
@@ -280,9 +288,9 @@ button svg,
 }
 
 .primary-action {
-  background: #d95f3f;
+  background: #196f63;
   color: #fff;
-  box-shadow: 0 12px 26px rgba(217, 95, 63, 0.28);
+  box-shadow: 0 12px 26px rgba(25, 111, 99, 0.24);
 }
 
 .primary-action:disabled,
@@ -299,13 +307,13 @@ button svg,
 
 .secondary-action,
 .file-button {
-  background: #efe6d8;
+  background: #e8efeb;
   color: #172026;
 }
 
 .danger-action {
-  background: #fff0ea;
-  color: #9c3e27;
+  background: #eef7f4;
+  color: #0f5f55;
 }
 
 .work-area {
@@ -368,7 +376,7 @@ button svg,
   display: grid;
   gap: 0.75rem;
   padding: 0 0 1rem;
-  border-bottom: 1px solid #eee7dc;
+  border-bottom: 1px solid #dce7e2;
 }
 
 .form-step:last-child {
@@ -399,19 +407,19 @@ button svg,
   gap: 0.75rem;
   padding: 1.1rem;
   background:
-    linear-gradient(180deg, rgba(255, 247, 241, 0.96), rgba(255, 255, 255, 0.98)),
-    #fff7f1;
+    linear-gradient(180deg, rgba(247, 251, 250, 0.98), rgba(255, 255, 255, 0.98)),
+    #f7fbfa;
   color: #18202a;
-  border-color: #efcbb9;
-  border-left: 5px solid #d95f3f;
-  box-shadow: 0 18px 46px rgba(158, 78, 45, 0.13);
+  border-color: #bfd8d2;
+  border-left: 5px solid #2f7d72;
+  box-shadow: 0 18px 46px rgba(29, 86, 78, 0.13);
 }
 
 .result-panel h2 {
   margin-bottom: 0.15rem;
   font-size: clamp(1.9rem, 3.4vw, 2.45rem);
   line-height: 1.15;
-  color: #c85839;
+  color: #226b60;
   word-break: keep-all;
 }
 
@@ -436,8 +444,8 @@ button svg,
 .inline-command,
 .icon-command {
   min-height: 2.75rem;
-  border: 1px solid #ded7ca;
-  background: #fbfaf7;
+  border: 1px solid #dce7e2;
+  background: #f8faf9;
   color: #172026;
   border-radius: 0.65rem;
   cursor: pointer;
@@ -446,10 +454,10 @@ button svg,
 
 .segmented button.selected,
 .choice-card.selected {
-  border-color: #d95f3f;
-  background: #fff0ea;
-  color: #9c3e27;
-  box-shadow: inset 0 0 0 1px rgba(217, 95, 63, 0.24);
+  border-color: #2f7d72;
+  background: #e8f4f0;
+  color: #0f5f55;
+  box-shadow: inset 0 0 0 1px rgba(47, 125, 114, 0.22);
 }
 
 .wallpaper-step .segmented.three {
@@ -466,7 +474,7 @@ button svg,
 }
 
 .wallpaper-step .segmented.three button.selected {
-  background: #fff0ea;
+  background: #e8f4f0;
 }
 
 .field-grid {
@@ -497,7 +505,7 @@ select,
 textarea {
   min-height: 2.75rem;
   width: 100%;
-  border: 1px solid #ded7ca;
+  border: 1px solid #dce7e2;
   border-radius: 0.65rem;
   padding: 0.55rem 0.7rem;
   background: #fff;
@@ -507,7 +515,7 @@ textarea {
 .picker-trigger {
   min-height: 2.75rem;
   width: 100%;
-  border: 1px solid #ded7ca;
+  border: 1px solid #dce7e2;
   border-radius: 0.65rem;
   padding: 0.55rem 0.7rem;
   background: #fff;
@@ -522,7 +530,7 @@ select:focus,
 textarea:focus,
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid #f4b199;
+  outline: 3px solid #9fd2ca;
   outline-offset: 2px;
 }
 
@@ -580,9 +588,9 @@ textarea {
   gap: 0.45rem;
   min-height: 6.2rem;
   padding: 0.55rem 0.65rem;
-  border: 1px solid #eee7dc;
+  border: 1px solid #dce7e2;
   border-radius: 0.8rem;
-  background: #fffdf9;
+  background: #ffffff;
   box-shadow: 0 8px 18px rgba(33, 42, 49, 0.04);
 }
 
@@ -605,17 +613,17 @@ textarea {
 
 .catalog-command {
   min-height: 2.4rem;
-  border: 1px solid #ead3c9;
+  border: 1px solid #cfe3dd;
   border-radius: 0.6rem;
-  background: #fff0ea;
-  color: #9c3e27;
+  background: #eef7f4;
+  color: #0f5f55;
   cursor: pointer;
   font-weight: 800;
 }
 
 .catalog-command:disabled {
-  border-color: #e5dfd5;
-  background: #f1eee8;
+  border-color: #dce7e2;
+  background: #eef1ee;
   color: #9a9a94;
   cursor: not-allowed;
 }
@@ -628,7 +636,7 @@ textarea {
 }
 
 .result-panel .warning-text {
-  color: #9c3e27;
+  color: #1d6b60;
 }
 
 .check-grid {
@@ -644,7 +652,7 @@ textarea {
   padding: 0.6rem 0.75rem;
   border: 1px solid #dfe6df;
   border-radius: 0.65rem;
-  background: #fbfaf7;
+  background: #f8faf9;
 }
 
 .check-row input {
@@ -712,8 +720,8 @@ textarea {
 .priority-pill {
   padding: 0.25rem 0.45rem;
   border-radius: 999px;
-  background: #fff0ea;
-  color: #9c3e27;
+  background: #e8f4f0;
+  color: #0f5f55;
   font-size: 0.85rem;
   font-weight: 900;
 }
@@ -736,8 +744,8 @@ textarea {
 .badge-row span {
   padding: 0.35rem 0.55rem;
   border-radius: 999px;
-  background: rgba(255, 213, 165, 0.16);
-  color: #ffd5a5;
+  background: #e8f4f0;
+  color: #0f5f55;
   font-weight: 800;
 }
 
@@ -745,14 +753,14 @@ textarea {
   margin: 0;
   padding: 0;
   list-style: none;
-  color: #6b3828;
+  color: #1d6b60;
 }
 
 .missing-list li {
   padding: 0.65rem 0.75rem;
-  border: 1px solid #ead3c9;
+  border: 1px solid #cfe3dd;
   border-radius: 0.65rem;
-  background: #fff8f4;
+  background: #f7fbfa;
   font-weight: 800;
 }
 
@@ -760,7 +768,7 @@ textarea {
 .wide-section .missing-list {
   padding-left: 1.2rem;
   list-style: disc;
-  color: #8a3b18;
+  color: #1d6b60;
 }
 
 .editor-band .missing-list li,
@@ -774,9 +782,9 @@ textarea {
   display: grid;
   gap: 0.75rem;
   padding: 0.85rem;
-  border: 1px solid #e6ddd1;
+  border: 1px solid #dce7e2;
   border-radius: 0.75rem;
-  background: #fbfaf7;
+  background: #f8faf9;
 }
 
 .contact-box div:first-child {
@@ -807,14 +815,14 @@ textarea {
   gap: 0.35rem;
   min-height: 2.45rem;
   border-radius: 0.6rem;
-  background: #fff0ea;
-  color: #9c3e27;
+  background: #e8f4f0;
+  color: #0f5f55;
   font-weight: 900;
   text-decoration: none;
 }
 
 .contact-actions a:last-child {
-  background: #f1eee8;
+  background: #eef1ee;
   color: #172026;
 }
 
@@ -842,7 +850,7 @@ textarea {
 }
 
 .catalog-card a {
-  color: #b84930;
+  color: #1d6b60;
   font-weight: 800;
 }
 
@@ -892,10 +900,10 @@ textarea {
   gap: 0.75rem;
   align-items: center;
   min-height: 3.1rem;
-  border: 1px solid #eee7dc;
+  border: 1px solid #dce7e2;
   border-radius: 0.7rem;
   padding: 0.65rem 0.8rem;
-  background: #fffdf9;
+  background: #ffffff;
   color: #172026;
   cursor: pointer;
   text-align: left;
@@ -903,8 +911,8 @@ textarea {
 
 .product-option:hover,
 .product-option.selected {
-  border-color: #d95f3f;
-  background: #fff6f1;
+  border-color: #2f7d72;
+  background: #e8f4f0;
 }
 
 .product-option span,
@@ -922,7 +930,7 @@ textarea {
 .catalog-card.empty svg {
   width: 1.4rem;
   height: 1.4rem;
-  color: #9c3e27;
+  color: #0f5f55;
 }
 
 .clickable-row {
@@ -930,7 +938,7 @@ textarea {
 }
 
 .clickable-row:hover td {
-  background: #fff8f4;
+  background: #f7fbfa;
 }
 
 .quote-meta-grid {
@@ -947,7 +955,7 @@ textarea {
   padding: 0.75rem;
   border: 1px solid #e7ece7;
   border-radius: 0.65rem;
-  background: #fbfaf7;
+  background: #f8faf9;
   color: #627078;
   font-weight: 700;
 }
@@ -967,8 +975,8 @@ textarea {
   gap: 1.25rem;
   padding: clamp(1rem, 3vw, 2rem);
   background:
-    radial-gradient(circle at top right, rgba(217, 95, 63, 0.1), transparent 30rem),
-    #f7f4ef;
+    radial-gradient(circle at top right, rgba(42, 122, 111, 0.1), transparent 30rem),
+    #f5f8f7;
 }
 
 .admin-nav {
@@ -1007,9 +1015,9 @@ textarea {
   align-items: center;
   padding: 0.8rem;
   border-radius: 0.5rem;
-  background: #fff4e6;
-  color: #6a3b00;
-  border: 1px solid #ffd7a3;
+  background: #f0f7f4;
+  color: #134f47;
+  border: 1px solid #cfe3dd;
 }
 
 .admin-hero-panel {
@@ -1086,7 +1094,7 @@ textarea {
 .quote-sheet th {
   position: sticky;
   top: 0;
-  background: #fbfaf7;
+  background: #f8faf9;
   z-index: 1;
 }
 
@@ -1097,16 +1105,16 @@ textarea {
 .sheet-count {
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
-  background: #fff0ea;
-  color: #9c3e27;
+  background: #e8f4f0;
+  color: #0f5f55;
   font-weight: 900;
 }
 
 .empty-sheet {
   padding: 2rem;
-  border: 1px dashed #cfc7ba;
+  border: 1px dashed #bfd8d2;
   border-radius: 0.75rem;
-  background: #fbfaf7;
+  background: #f8faf9;
 }
 
 .empty-sheet p {
@@ -1286,10 +1294,16 @@ td input[type="checkbox"] {
   }
 
   .hero-band {
-    grid-template-columns: minmax(0, 1fr) 250px;
-    gap: 1.2rem;
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 20%);
     margin-top: 0.65rem;
+  }
+
+  .hero-copy {
     padding: 0.95rem 1.35rem;
+  }
+
+  .hero-side {
+    padding: 0.75rem;
   }
 
   .hero-band h1,
@@ -1302,17 +1316,8 @@ td input[type="checkbox"] {
     font-size: 0.98rem;
   }
 
-  .hero-side {
-    gap: 0.55rem;
-  }
-
-  .hero-logo-panel {
-    min-height: 108px;
-    padding: 0.55rem;
-  }
-
   .hero-logo {
-    max-height: 96px;
+    max-height: 105px;
   }
 
   .business-strip {
@@ -1488,11 +1493,12 @@ td input[type="checkbox"] {
 
   .hero-band {
     border-radius: 0.85rem;
-    padding: 1.2rem;
   }
 
-  .hero-logo-panel {
-    min-height: 150px;
+  .hero-side {
+    min-height: 8.5rem;
+    border-top: 1px solid rgba(31, 43, 51, 0.08);
+    border-left: 0;
   }
 
   .quote-meta-grid {

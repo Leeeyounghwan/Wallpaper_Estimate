@@ -1,14 +1,12 @@
-import { ChangeEvent, FormEvent, MouseEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
   BookOpen,
   CalendarDays,
   FileJson,
-  Home,
   MapPin,
   Navigation,
-  PackageCheck,
   Phone,
   Plus,
   RotateCcw,
@@ -82,15 +80,6 @@ export default function App() {
     await saveState(next);
   };
 
-  const goHome = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    if (route !== "/") {
-      window.history.pushState(null, "", pathForRoute("/"));
-      setRoute("/");
-    }
-    setCatalogFilter(null);
-  };
-
   const showCatalog = (filter: CatalogFilter | null) => {
     if (route !== "/") {
       window.history.pushState(null, "", pathForRoute("/"));
@@ -105,19 +94,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <a className="brand" href={pathForRoute("/")} onClick={goHome}>
-          <PackageCheck aria-hidden />
-          <span>{state.settings.shopName || "도배·장판 견적관리"}</span>
-        </a>
-        <nav aria-label="주요 메뉴">
-          <a className={route === "/" ? "active" : ""} href={pathForRoute("/")} onClick={goHome}>
-            <Home aria-hidden />
-            견적 산출
-          </a>
-        </nav>
-      </header>
-
       {route === "/admin" ? (
         <AdminApp state={state} persist={persist} />
       ) : (
@@ -169,12 +145,10 @@ function CustomerPage({
     <main className="page">
       <section className="hero-band customer-hero">
         <div className="hero-copy">
-          <p className="eyebrow">{COMPANY_INFO.category}</p>
+          <p className="hero-shop">{shopName}</p>
           <h1>
-            <span>{shopName}</span>
-            <span>도배·장판 견적</span>
+            <span>도배·장판 견적 미리보기</span>
           </h1>
-          <p>평수와 제품만 고르면 참고 금액을 바로 확인할 수 있습니다.</p>
           <div className="business-strip" aria-label="업체 정보">
             <a href={COMPANY_INFO.naverMapUrl} target="_blank" rel="noreferrer">
               <MapPin aria-hidden />
@@ -188,9 +162,7 @@ function CustomerPage({
           </div>
         </div>
         <div className="hero-side">
-          <div className="hero-logo-panel">
-            <img className="hero-logo" src={`${normalizedBase()}gagyeong-logo.png`} alt="가경지업사 로고" />
-          </div>
+          <img className="hero-logo" src={`${normalizedBase()}gagyeong-logo.png`} alt="가경지업사 로고" />
         </div>
       </section>
 

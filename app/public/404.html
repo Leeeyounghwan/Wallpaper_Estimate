@@ -7,7 +7,7 @@
     <script>
       const path = window.location.pathname;
       const firstSegment = path.split("/").filter(Boolean)[0];
-      const base = firstSegment === "wallpaper-estimate" ? "/wallpaper-estimate/" : "/";
+      const base = firstSegment === "Wallpaper_Estimate" ? "/Wallpaper_Estimate/" : "/";
       window.location.replace(`${base}?spa=${encodeURIComponent(path + window.location.search + window.location.hash)}`);
     </script>
   </head>

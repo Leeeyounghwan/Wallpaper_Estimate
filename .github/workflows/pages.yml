@@ -31,7 +31,7 @@ jobs:
       - run: npm run build
         working-directory: app
         env:
-          VITE_BASE_PATH: /Wallpaper_Estimate/
+          VITE_BASE_PATH: /
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist

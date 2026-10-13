@@ -216,9 +216,9 @@ function CustomerPage({
                 빌라
               </button>
             </div>
-            <div className="field-grid">
-              <label>
-                면적 종류
+            <label className="area-field">
+              면적
+              <div className="area-control">
                 <select
                   value={input.area_type}
                   onChange={(event) => setInput((current) => ({ ...current, area_type: event.target.value as AreaType }))}
@@ -226,17 +226,19 @@ function CustomerPage({
                   <option value="평형">평형</option>
                   <option value="전용">전용</option>
                 </select>
-              </label>
-              <label>
-                면적
                 <input
-                  type="number"
-                  min={1}
-                  value={input.area_pyeong}
-                  onChange={(event) => setInput((current) => ({ ...current, area_pyeong: Number(event.target.value) }))}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={3}
+                  value={input.area_pyeong > 0 ? String(input.area_pyeong) : ""}
+                  onChange={(event) => {
+                    const value = event.target.value.replace(/[^\d]/g, "");
+                    setInput((current) => ({ ...current, area_pyeong: value ? Number(value) : 0 }));
+                  }}
                 />
-              </label>
-            </div>
+                <span>평</span>
+              </div>
+            </label>
           </Step>
 
           <Step title="2. 벽지" className="wallpaper-step">
@@ -457,6 +459,67 @@ function CatalogModal({ rules, filter, onClose }: { rules: QuoteRules; filter: C
   );
 }
 
+function ProductPickerModal({
+  products,
+  search,
+  onSearch,
+  selectedValue,
+  title,
+  placeholder,
+  onSelect,
+  onClose,
+}: {
+  products: ProductPickerOption[];
+  search: string;
+  onSearch: (value: string) => void;
+  selectedValue: string | null;
+  title: string;
+  placeholder: string;
+  onSelect: (product: ProductPickerOption) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      <section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-picker-title" onClick={(event) => event.stopPropagation()}>
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">제품 선택</p>
+            <h2 id="product-picker-title">{title}</h2>
+          </div>
+          <button type="button" className="icon-command" onClick={onClose} aria-label="닫기">
+            ×
+          </button>
+        </div>
+        <input
+          autoFocus
+          className="product-search"
+          value={search}
+          placeholder={placeholder}
+          onChange={(event) => onSearch(event.target.value)}
+        />
+        <div className="product-list">
+          {products.map((product) => {
+            const selected = selectedValue === product.value;
+            return (
+            <button
+              type="button"
+              className={selected ? "product-option selected" : "product-option"}
+              key={`${product.kind}-${product.value}`}
+              onClick={() => onSelect(product)}
+            >
+              <span>{product.group}</span>
+              <strong>{product.title}</strong>
+              <small>{product.subtitle}</small>
+            </button>
+          );
+          })}
+          {products.length === 0 && <p className="empty-search">검색 결과가 없습니다.</p>}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function AdminApp({ state, persist }: { state: StoredState; persist: (next: StoredState) => Promise<void> }) {
   const [tab, setTab] = useState<"calc" | "data" | "quotes" | "backup">("calc");
   const [adminInput, setAdminInput] = useState<QuoteInput>({ ...INITIAL_INPUT, material_id: "SHINHAN_SKETCH" });
@@ -464,7 +527,7 @@ function AdminApp({ state, persist }: { state: StoredState; persist: (next: Stor
     inquiryDate: todayKst(),
     customerPhone: "",
     siteAddress: "",
-    preferredDates: [""],
+    preferredDates: ["", "", ""],
     memo: "",
   });
   const adminResult = useMemo(() => quote(adminInput, state.rules), [adminInput, state.rules]);
@@ -541,15 +604,53 @@ function AdminCalculator({
   setQuoteInfo: (info: AdminQuoteInfo) => void;
   onSaveQuote: () => Promise<void>;
 }) {
+  const [productPickerKind, setProductPickerKind] = useState<"wallpaper" | "flooring" | null>(null);
+  const [productSearch, setProductSearch] = useState("");
+  const selectedMaterial = rules.materials.find((material) => material.id === input.material_id);
+  const selectedFlooring = input.include_flooring
+    ? rules.flooring_materials.find((flooring) => flooring.thickness === input.flooring_thickness)
+    : null;
+  const wallpaperProducts = useMemo<ProductPickerOption[]>(() =>
+    rules.materials.map((material) => ({
+      kind: "wallpaper" as const,
+      value: material.id ?? "",
+      group: labelForCategory(material.category),
+      title: material.name ?? "제품명 없음",
+      subtitle: material.brand ?? "브랜드 없음",
+    })),
+  [rules.materials]);
+  const flooringProducts = useMemo<ProductPickerOption[]>(() =>
+    rules.flooring_materials.map((flooring) => ({
+      kind: "flooring" as const,
+      value: flooring.thickness,
+      group: "장판",
+      title: flooring.name || flooring.thickness,
+      subtitle: flooring.brand ? `${flooring.brand} / ${flooring.thickness}` : flooring.thickness,
+    })),
+  [rules.flooring_materials]);
+  const filteredProducts = useMemo<ProductPickerOption[]>(() => {
+    const keyword = productSearch.trim().toLowerCase();
+    const products = productPickerKind === "flooring" ? flooringProducts : wallpaperProducts;
+    if (!keyword) return products;
+    return products.filter((product) =>
+      [product.kind === "wallpaper" ? "벽지" : "장판", product.group, product.title, product.subtitle].some((value) =>
+        value.toLowerCase().includes(keyword),
+      ),
+    );
+  }, [flooringProducts, productPickerKind, productSearch, wallpaperProducts]);
+
   const updatePreferredDate = (index: number, value: string) => {
     if (value && quoteInfo.preferredDates.some((date, dateIndex) => date === value && dateIndex !== index)) {
       return;
     }
+    const preferredDates = [...quoteInfo.preferredDates, "", "", ""].slice(0, 3);
+    preferredDates[index] = value;
     setQuoteInfo({
       ...quoteInfo,
-      preferredDates: quoteInfo.preferredDates.map((date, dateIndex) => (dateIndex === index ? value : date)),
+      preferredDates,
     });
   };
+  const preferredDateSlots = [...quoteInfo.preferredDates, "", "", ""].slice(0, 3);
 
   return (
     <div className="admin-stack">
@@ -566,7 +667,7 @@ function AdminCalculator({
       </section>
 
       <section className="editor-band">
-        <div className="field-grid">
+        <div className="field-grid admin-estimate-grid">
           <label>
             건물
             <select value={input.building_type} onChange={(event) => setInput({ ...input, building_type: event.target.value as BuildingType })}>
@@ -587,21 +688,48 @@ function AdminCalculator({
             면적
             <input type="number" min={1} value={input.area_pyeong} onChange={(event) => setInput({ ...input, area_pyeong: Number(event.target.value) })} />
           </label>
-          <label>
-            제품
-            <select value={input.material_id ?? ""} onChange={(event) => setInput({ ...input, material_id: event.target.value || null })}>
-              <option value="">선택 필요</option>
-              {rules.materials.map((material) => (
-                <option value={material.id ?? ""} key={material.id}>
-                  {labelForCategory(material.category)} / {material.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="field-label">
+            <span>벽지</span>
+            <button type="button" className="picker-trigger" onClick={() => {
+              setProductSearch("");
+              setProductPickerKind("wallpaper");
+            }}>
+              {selectedMaterial ? `${labelForCategory(selectedMaterial.category)} / ${selectedMaterial.name}` : "벽지 검색 및 선택"}
+            </button>
+          </div>
+          <div className="field-label">
+            <span>장판</span>
+            <button type="button" className="picker-trigger" onClick={() => {
+              setProductSearch("");
+              setProductPickerKind("flooring");
+            }}>
+              {selectedFlooring ? `${selectedFlooring.name || selectedFlooring.thickness}` : "장판 검색 및 선택"}
+            </button>
+          </div>
         </div>
       </section>
 
-      <section className="editor-band">
+      {productPickerKind && (
+        <ProductPickerModal
+          products={filteredProducts}
+          search={productSearch}
+          onSearch={setProductSearch}
+          selectedValue={productPickerKind === "flooring" ? input.flooring_thickness ?? null : input.material_id}
+          title={productPickerKind === "flooring" ? "장판을 검색하세요." : "벽지를 검색하세요."}
+          placeholder={productPickerKind === "flooring" ? "장판, 두께, 브랜드 검색" : "벽지, 종류, 브랜드, 제품명 검색"}
+          onClose={() => setProductPickerKind(null)}
+          onSelect={(product) => {
+            setInput(
+              product.kind === "wallpaper"
+                ? { ...input, material_id: product.value || null }
+                : { ...input, include_flooring: true, flooring_thickness: product.value },
+            );
+            setProductPickerKind(null);
+          }}
+        />
+      )}
+
+      <section className="editor-band inquiry-panel">
         <div className="section-heading">
           <h2>문의 정보</h2>
         </div>
@@ -632,33 +760,34 @@ function AdminCalculator({
             />
           </label>
         </div>
-        <div className="date-list admin-date-list">
-          {quoteInfo.preferredDates.map((date, index) => (
-            <label key={index}>
-              <CalendarDays aria-hidden />
-              <span className="priority-pill">{index + 1}순위</span>
-              <input type="date" value={date} min={todayKst()} onChange={(event) => updatePreferredDate(index, event.target.value)} />
-            </label>
-          ))}
+        <div className="inquiry-detail-grid">
+          <div className="preferred-date-panel">
+            <span className="field-title">희망 시공일</span>
+            <div className="date-list admin-date-list">
+              {preferredDateSlots.map((date, index) => (
+                <label key={index} onClick={(event) => openDatePicker(event.currentTarget.querySelector("input"))}>
+                  <CalendarDays aria-hidden />
+                  <span className="priority-pill">{index + 1}순위</span>
+                  <input
+                    type="date"
+                    value={date}
+                    min={todayKst()}
+                    onClick={(event) => openDatePicker(event.currentTarget)}
+                    onChange={(event) => updatePreferredDate(index, event.target.value)}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+          <label className="memo-field">
+            메모
+            <textarea
+              value={quoteInfo.memo}
+              placeholder="상담 내용, 특이사항, 현장 조건 등을 기록하세요."
+              onChange={(event) => setQuoteInfo({ ...quoteInfo, memo: event.target.value })}
+            />
+          </label>
         </div>
-        {quoteInfo.preferredDates.length < 3 && (
-          <button
-            type="button"
-            className="inline-command"
-            onClick={() => setQuoteInfo({ ...quoteInfo, preferredDates: [...quoteInfo.preferredDates, ""] })}
-          >
-            <Plus aria-hidden />
-            선호일 추가
-          </button>
-        )}
-        <label className="wide-field">
-          메모
-          <textarea
-            value={quoteInfo.memo}
-            placeholder="상담 내용, 특이사항, 현장 조건 등을 기록하세요."
-            onChange={(event) => setQuoteInfo({ ...quoteInfo, memo: event.target.value })}
-          />
-        </label>
       </section>
 
       {result.status === "quoted" && result.calculation ? (
@@ -718,111 +847,173 @@ function AdminCalculator({
 
 function DataManager({ state, persist }: { state: StoredState; persist: (next: StoredState) => Promise<void> }) {
   const [dataTab, setDataTab] = useState<DataTab>("wallpaper");
+  const [materialDrafts, setMaterialDrafts] = useState<Material[]>(state.rules.materials);
+  const [flooringDrafts, setFlooringDrafts] = useState<FlooringMaterial[]>(state.rules.flooring_materials);
+  const [laborRateDrafts, setLaborRateDrafts] = useState(state.rules.daily_labor_rates_krw);
+  const [laborRequirementDrafts, setLaborRequirementDrafts] = useState(state.rules.labor_requirements);
+  const [catalogDrafts, setCatalogDrafts] = useState<Catalog[]>(state.rules.catalogs);
 
-  const addMaterial = async () => {
-    const material: Material = {
-      id: `LOCAL_MATERIAL_${Date.now()}`,
-      category: "narrow_hapji",
-      brand: "관리자 등록",
-      name: "새 제품",
-      purchase_unit_pyeong: 5,
-      unit_label: "5평 단위",
-      retail_krw: 0,
-      supplies_krw_per_actual_pyeong: 0,
-      supplies_included_in_retail: false,
-      active: true,
-    };
+  useEffect(() => {
+    setMaterialDrafts(state.rules.materials);
+  }, [state.rules.materials]);
+
+  useEffect(() => {
+    setFlooringDrafts(state.rules.flooring_materials);
+  }, [state.rules.flooring_materials]);
+
+  useEffect(() => {
+    setLaborRateDrafts(state.rules.daily_labor_rates_krw);
+    setLaborRequirementDrafts(state.rules.labor_requirements);
+  }, [state.rules.daily_labor_rates_krw, state.rules.labor_requirements]);
+
+  useEffect(() => {
+    setCatalogDrafts(state.rules.catalogs);
+  }, [state.rules.catalogs]);
+
+  const materialDirty = JSON.stringify(materialDrafts) !== JSON.stringify(state.rules.materials);
+  const flooringDirty = JSON.stringify(flooringDrafts) !== JSON.stringify(state.rules.flooring_materials);
+  const laborDirty =
+    JSON.stringify(laborRateDrafts) !== JSON.stringify(state.rules.daily_labor_rates_krw) ||
+    JSON.stringify(laborRequirementDrafts) !== JSON.stringify(state.rules.labor_requirements);
+  const catalogDirty = JSON.stringify(catalogDrafts) !== JSON.stringify(state.rules.catalogs);
+
+  const createMaterial = (): Material => ({
+    id: `LOCAL_MATERIAL_${Date.now()}`,
+    category: "" as Material["category"],
+    brand: null,
+    name: null,
+    purchase_unit_pyeong: null,
+    unit_label: "5평 단위",
+    retail_krw: null,
+    wholesale_krw: null,
+    supplies_krw_per_actual_pyeong: null,
+    supplies_included_in_retail: false,
+    active: true,
+  });
+
+  const addMaterialDraft = () => {
+    const material = createMaterial();
+    setMaterialDrafts((materials) => [...materials, material]);
+  };
+
+  const updateMaterialDraft = (index: number, patch: Partial<Material>) => {
+    setMaterialDrafts((materials) => materials.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
+  };
+
+  const saveMaterials = async () => {
     const nextRules = {
       ...state.rules,
-      materials: [...state.rules.materials, material],
+      materials: materialDrafts,
       dataset_version: bumpVersion(state.rules.dataset_version),
     };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "create", entity: `material:${material.id}`, before: null, after: material }));
+    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: "materials", before: state.rules.materials, after: materialDrafts }));
   };
 
-  const updateMaterial = async (index: number, patch: Partial<Material>) => {
-    const before = state.rules.materials[index];
-    const materials = state.rules.materials.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item));
-    const nextRules = { ...state.rules, materials, dataset_version: bumpVersion(state.rules.dataset_version) };
-    const next = addAuditEvent(
-      { ...state, rules: nextRules },
-      { action: "update", entity: `material:${before.id}`, before, after: materials[index] },
-    );
-    await persist(next);
+  const addFlooringDraft = () => {
+    setFlooringDrafts((items) => [
+      ...items,
+      {
+        id: `LOCAL_FLOORING_${Date.now()}`,
+        thickness: "",
+        brand: null,
+        name: null,
+        purchase_unit_pyeong: null,
+        retail_krw: null,
+        wholesale_krw: null,
+        supplies_krw_per_actual_pyeong: null,
+      },
+    ]);
   };
 
-  const addFlooring = async () => {
-    const flooring: FlooringMaterial = {
-      id: `LOCAL_FLOORING_${Date.now()}`,
-      thickness: "새 규격",
-      brand: "관리자 등록",
-      name: "새 장판",
-      purchase_unit_pyeong: 1,
-      retail_krw: 0,
-      supplies_krw_per_actual_pyeong: 0,
-    };
-    const nextRules = {
-      ...state.rules,
-      flooring_materials: [...state.rules.flooring_materials, flooring],
-      dataset_version: bumpVersion(state.rules.dataset_version),
-    };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "create", entity: `flooring:${flooring.id}`, before: null, after: flooring }));
+  const updateFlooringDraft = (index: number, patch: Partial<FlooringMaterial>) => {
+    setFlooringDrafts((items) => items.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
   };
 
-  const updateFlooring = async (index: number, patch: Partial<FlooringMaterial>) => {
-    const before = state.rules.flooring_materials[index];
-    const flooring_materials = state.rules.flooring_materials.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item));
+  const saveFlooring = async () => {
+    const flooring_materials = flooringDrafts;
     const nextRules = { ...state.rules, flooring_materials, dataset_version: bumpVersion(state.rules.dataset_version) };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: `flooring:${before.id ?? before.thickness}`, before, after: flooring_materials[index] }));
+    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: "flooring_materials", before: state.rules.flooring_materials, after: flooring_materials }));
   };
 
-  const updateLaborRate = async (grade: LaborGrade, value: number) => {
-    const before = state.rules.daily_labor_rates_krw;
-    const daily_labor_rates_krw = { ...before, [grade]: value };
-    const nextRules = { ...state.rules, daily_labor_rates_krw, dataset_version: bumpVersion(state.rules.dataset_version) };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: `labor-rate:${grade}`, before, after: daily_labor_rates_krw }));
+  const updateLaborRateDraft = (grade: LaborGrade, value: number) => {
+    setLaborRateDrafts((rates) => ({ ...rates, [grade]: value }));
   };
 
-  const addLaborCrewRule = async () => {
-    const labor_requirements = state.rules.labor_requirements.map((record, index) => {
-      if (index !== 0) return record;
-      const nextArea = String(Math.max(...Object.keys(record.entries).map(Number), 0) + 1);
-      return { ...record, entries: { ...record.entries, [nextArea]: { helper: 0, intermediate: 0, expert: 0 } } };
-    });
-    const nextRules = { ...state.rules, labor_requirements, dataset_version: bumpVersion(state.rules.dataset_version) };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "create", entity: "labor-crew", before: null, after: labor_requirements[0] }));
+  const addLaborCrewRule = () => {
+    setLaborRequirementDrafts((requirements) => [
+      ...requirements,
+      {
+        category: "" as Material["category"],
+        area_type: "" as AreaType,
+        building_scope: "generic",
+        entries: { "": { helper: null, intermediate: null, expert: null } as unknown as Crew },
+      },
+    ]);
   };
 
-  const updateLaborCrew = async (recordIndex: number, area: string, patch: Partial<Crew>) => {
-    const before = state.rules.labor_requirements[recordIndex];
-    const labor_requirements = state.rules.labor_requirements.map((record, index) => {
+  const updateLaborRecordDraft = (recordIndex: number, patch: Partial<RuleEntries<Crew>>) => {
+    setLaborRequirementDrafts((requirements) => requirements.map((record, index) => (index === recordIndex ? { ...record, ...patch } : record)));
+  };
+
+  const updateLaborAreaDraft = (recordIndex: number, oldArea: string, nextArea: string) => {
+    setLaborRequirementDrafts((requirements) => requirements.map((record, index) => {
       if (index !== recordIndex) return record;
-      const current = record.entries[area] ?? { helper: 0, intermediate: 0, expert: 0 };
-      return { ...record, entries: { ...record.entries, [area]: { ...current, ...patch } } };
-    });
-    const nextRules = { ...state.rules, labor_requirements, dataset_version: bumpVersion(state.rules.dataset_version) };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: `labor-crew:${before.category}:${area}`, before, after: labor_requirements[recordIndex] }));
+      const { [oldArea]: crew, ...rest } = record.entries;
+      return { ...record, entries: { ...rest, [nextArea]: crew ?? ({ helper: null, intermediate: null, expert: null } as unknown as Crew) } };
+    }));
   };
 
-  const addCatalog = async () => {
-    const catalog: Catalog = {
-      id: `CAT_LOCAL_${Date.now()}`,
-      name: "새 카탈로그",
-      brand: null,
-      product_relation: null,
-      url: "https://",
-      verification: "관리자 등록",
-    };
-    const nextRules = { ...state.rules, catalogs: [...state.rules.catalogs, catalog], dataset_version: bumpVersion(state.rules.dataset_version) };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "create", entity: "catalog", before: null, after: catalog }));
+  const updateLaborCrewDraft = (recordIndex: number, area: string, patch: Partial<Record<keyof Crew, number | null>>) => {
+    setLaborRequirementDrafts((requirements) => requirements.map((record, index) => {
+      if (index !== recordIndex) return record;
+      const current = record.entries[area] ?? ({ helper: null, intermediate: null, expert: null } as unknown as Crew);
+      return { ...record, entries: { ...record.entries, [area]: { ...current, ...patch } as Crew } };
+    }));
   };
 
-  const updateCatalog = async (index: number, patch: Partial<Catalog>) => {
-    const before = state.rules.catalogs[index];
-    const catalogs = state.rules.catalogs.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item));
+  const saveLabor = async () => {
+    const daily_labor_rates_krw = laborRateDrafts;
+    const labor_requirements = laborRequirementDrafts;
+    const nextRules = { ...state.rules, daily_labor_rates_krw, labor_requirements, dataset_version: bumpVersion(state.rules.dataset_version) };
+    await persist(
+      addAuditEvent(
+        { ...state, rules: nextRules },
+        {
+          action: "update",
+          entity: "labor",
+          before: { daily_labor_rates_krw: state.rules.daily_labor_rates_krw, labor_requirements: state.rules.labor_requirements },
+          after: { daily_labor_rates_krw, labor_requirements },
+        },
+      ),
+    );
+  };
+
+  const addCatalogDraft = () => {
+    setCatalogDrafts((catalogs) => [
+      ...catalogs,
+      {
+        id: `CAT_LOCAL_${Date.now()}`,
+        name: "",
+        brand: null,
+        product_relation: null,
+        url: "",
+        verification: "",
+      },
+    ]);
+  };
+
+  const updateCatalogDraft = (index: number, patch: Partial<Catalog>) => {
+    setCatalogDrafts((catalogs) => catalogs.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
+  };
+
+  const saveCatalogs = async () => {
+    const catalogs = catalogDrafts;
     const nextRules = { ...state.rules, catalogs, dataset_version: bumpVersion(state.rules.dataset_version) };
-    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: `catalog:${before.id}`, before, after: catalogs[index] }));
+    await persist(addAuditEvent({ ...state, rules: nextRules }, { action: "update", entity: "catalogs", before: state.rules.catalogs, after: catalogs }));
   };
+  const laborRows = laborRequirementDrafts.flatMap((record, recordIndex) =>
+    Object.entries(record.entries).map(([area, crew]) => ({ record, recordIndex, area, crew })),
+  );
 
   return (
     <div className="admin-stack">
@@ -852,63 +1043,81 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
         <section className="table-wrap">
         <div className="section-heading">
           <h2>벽지 가격</h2>
-          <button type="button" className="inline-command" onClick={addMaterial}>
-            <Plus aria-hidden />
-            벽지 추가
-          </button>
+          <div className="button-row">
+            <button type="button" className="primary-action compact-action" onClick={saveMaterials} disabled={!materialDirty}>
+              <Save aria-hidden />
+              변경사항 저장
+            </button>
+            <button type="button" className="inline-command" onClick={addMaterialDraft}>
+              <Plus aria-hidden />
+              벽지 추가
+            </button>
+          </div>
         </div>
-        <table>
+        <table className="data-table wallpaper-table">
+          <colgroup>
+            <col className="col-index" />
+            <col className="col-brand" />
+            <col className="col-product" />
+            <col className="col-category" />
+            <col className="col-unit" />
+            <col className="col-price" />
+            <col className="col-cost" />
+            <col className="col-supplies" />
+            <col className="col-status" />
+          </colgroup>
           <thead>
             <tr>
-              <th>제품</th>
+              <th>순번</th>
               <th>브랜드</th>
+              <th>제품</th>
               <th>종류</th>
-              <th>구매단위</th>
-              <th>소매 단가</th>
-              <th>원가 단가</th>
-              <th>부자재</th>
+              <th className="numeric">구매단위 (평)</th>
+              <th className="numeric">소매 단가</th>
+              <th className="numeric">원가 단가</th>
+              <th className="numeric">부자재</th>
               <th>상태</th>
             </tr>
           </thead>
           <tbody>
-            {state.rules.materials.map((material, index) => (
+            {materialDrafts.map((material, index) => (
               <tr key={material.id ?? index}>
+                <td className="center">{index + 1}</td>
                 <td>
-                  <input value={material.name ?? ""} onChange={(event) => updateMaterial(index, { name: event.target.value })} />
+                  <input value={material.brand ?? ""} onChange={(event) => updateMaterialDraft(index, { brand: event.target.value || null })} />
                 </td>
                 <td>
-                  <input value={material.brand ?? ""} onChange={(event) => updateMaterial(index, { brand: event.target.value || null })} />
+                  <input value={material.name ?? ""} onChange={(event) => updateMaterialDraft(index, { name: event.target.value })} />
                 </td>
                 <td>
                   <select
-                    value={material.category}
-                    onChange={(event) => updateMaterial(index, { category: event.target.value as Material["category"] })}
+                    value={material.category ?? ""}
+                    onChange={(event) => updateMaterialDraft(index, { category: event.target.value as Material["category"] })}
                   >
+                    <option value="">선택</option>
                     <option value="silk">실크</option>
                     <option value="narrow_hapji">소폭 합지</option>
                     <option value="wide_hapji">광폭 합지</option>
                   </select>
                 </td>
-                <td>
-                  <NumberCell
+                <td className="numeric">
+                  <FormattedNumberCell
                     value={material.purchase_unit_pyeong}
-                    onCommit={(value) => updateMaterial(index, { purchase_unit_pyeong: value })}
+                    onCommit={(value) => updateMaterialDraft(index, { purchase_unit_pyeong: value })}
+                    ariaLabel="구매단위"
                   />
                 </td>
-                <td>
-                  <NumberCell value={material.retail_krw} onCommit={(value) => updateMaterial(index, { retail_krw: value })} />
+                <td className="numeric">
+                  <FormattedNumberCell value={material.retail_krw} onCommit={(value) => updateMaterialDraft(index, { retail_krw: value })} ariaLabel="소매 단가" />
                 </td>
-                <td>
-                  {material.wholesale_krw == null ? (
-                    "미가져옴"
-                  ) : (
-                    <NumberCell value={material.wholesale_krw} onCommit={(value) => updateMaterial(index, { wholesale_krw: value })} />
-                  )}
+                <td className="numeric">
+                  <FormattedNumberCell value={material.wholesale_krw} onCommit={(value) => updateMaterialDraft(index, { wholesale_krw: value })} ariaLabel="원가 단가" />
                 </td>
-                <td>
-                  <NumberCell
+                <td className="numeric">
+                  <FormattedNumberCell
                     value={material.supplies_krw_per_actual_pyeong}
-                    onCommit={(value) => updateMaterial(index, { supplies_krw_per_actual_pyeong: value })}
+                    onCommit={(value) => updateMaterialDraft(index, { supplies_krw_per_actual_pyeong: value })}
+                    ariaLabel="부자재"
                   />
                 </td>
                 <td>
@@ -916,7 +1125,7 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
                     type="button"
                     className="icon-command"
                     title={material.active === false ? "활성" : "비활성"}
-                    onClick={() => updateMaterial(index, { active: material.active === false })}
+                    onClick={() => updateMaterialDraft(index, { active: material.active === false })}
                   >
                     {material.active === false ? <RotateCcw aria-hidden /> : <Trash2 aria-hidden />}
                   </button>
@@ -932,38 +1141,69 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
         <section className="table-wrap">
           <div className="section-heading">
             <h2>부자재 기준</h2>
-            <button type="button" className="inline-command" onClick={addMaterial}>
-              <Plus aria-hidden />
-              부자재 항목 추가
-            </button>
+            <div className="button-row">
+              <button type="button" className="primary-action compact-action" onClick={saveMaterials} disabled={!materialDirty}>
+                <Save aria-hidden />
+                변경사항 저장
+              </button>
+              <button type="button" className="inline-command" onClick={addMaterialDraft}>
+                <Plus aria-hidden />
+                부자재 항목 추가
+              </button>
+            </div>
           </div>
-          <table>
+          <table className="data-table supplies-table">
+            <colgroup>
+              <col className="col-index" />
+              <col className="col-product" />
+              <col className="col-brand" />
+              <col className="col-category" />
+              <col className="col-price" />
+              <col className="col-check" />
+            </colgroup>
             <thead>
               <tr>
+                <th>순번</th>
                 <th>제품</th>
                 <th>브랜드</th>
                 <th>종류</th>
-                <th>실사용 평당 부자재</th>
+                <th className="numeric">실사용 평당 부자재</th>
                 <th>소매가 포함</th>
               </tr>
             </thead>
             <tbody>
-              {state.rules.materials.map((material, index) => (
+              {materialDrafts.map((material, index) => (
                 <tr key={material.id ?? index}>
-                  <td>{material.name}</td>
-                  <td>{material.brand}</td>
-                  <td>{labelForCategory(material.category)}</td>
+                  <td className="center">{index + 1}</td>
                   <td>
-                    <NumberCell
-                      value={material.supplies_krw_per_actual_pyeong}
-                      onCommit={(value) => updateMaterial(index, { supplies_krw_per_actual_pyeong: value })}
-                    />
+                    <input value={material.name ?? ""} onChange={(event) => updateMaterialDraft(index, { name: event.target.value || null })} />
                   </td>
                   <td>
+                    <input value={material.brand ?? ""} onChange={(event) => updateMaterialDraft(index, { brand: event.target.value || null })} />
+                  </td>
+                  <td>
+                    <select
+                      value={material.category ?? ""}
+                      onChange={(event) => updateMaterialDraft(index, { category: event.target.value as Material["category"] })}
+                    >
+                      <option value="">선택</option>
+                      <option value="silk">실크</option>
+                      <option value="narrow_hapji">소폭 합지</option>
+                      <option value="wide_hapji">광폭 합지</option>
+                    </select>
+                  </td>
+                  <td className="numeric">
+                    <FormattedNumberCell
+                      value={material.supplies_krw_per_actual_pyeong}
+                      onCommit={(value) => updateMaterialDraft(index, { supplies_krw_per_actual_pyeong: value })}
+                      ariaLabel="실사용 평당 부자재"
+                    />
+                  </td>
+                  <td className="center">
                     <input
                       type="checkbox"
                       checked={Boolean(material.supplies_included_in_retail)}
-                      onChange={(event) => updateMaterial(index, { supplies_included_in_retail: event.target.checked })}
+                      onChange={(event) => updateMaterialDraft(index, { supplies_included_in_retail: event.target.checked })}
                       aria-label={`${material.name} 소매가 포함 여부`}
                     />
                   </td>
@@ -978,52 +1218,67 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
         <section className="table-wrap">
           <div className="section-heading">
             <h2>장판 가격</h2>
-            <button type="button" className="inline-command" onClick={addFlooring}>
-              <Plus aria-hidden />
-              장판 추가
-            </button>
+            <div className="button-row">
+              <button type="button" className="primary-action compact-action" onClick={saveFlooring} disabled={!flooringDirty}>
+                <Save aria-hidden />
+                변경사항 저장
+              </button>
+              <button type="button" className="inline-command" onClick={addFlooringDraft}>
+                <Plus aria-hidden />
+                장판 추가
+              </button>
+            </div>
           </div>
-          <table>
+          <table className="data-table flooring-table">
+            <colgroup>
+              <col className="col-index" />
+              <col className="col-thickness" />
+              <col className="col-brand" />
+              <col className="col-product" />
+              <col className="col-unit" />
+              <col className="col-price" />
+              <col className="col-cost" />
+              <col className="col-supplies" />
+            </colgroup>
             <thead>
               <tr>
+                <th>순번</th>
                 <th>두께</th>
                 <th>브랜드</th>
                 <th>제품명</th>
-                <th>구매단위</th>
-                <th>소매 단가</th>
-                <th>원가 단가</th>
-                <th>부자재</th>
+                <th className="numeric">구매단위 (평)</th>
+                <th className="numeric">소매 단가</th>
+                <th className="numeric">원가 단가</th>
+                <th className="numeric">부자재</th>
               </tr>
             </thead>
             <tbody>
-              {state.rules.flooring_materials.map((flooring, index) => (
+              {flooringDrafts.map((flooring, index) => (
                 <tr key={flooring.id ?? flooring.thickness}>
+                  <td className="center">{index + 1}</td>
                   <td>
-                    <input value={flooring.thickness} onChange={(event) => updateFlooring(index, { thickness: event.target.value })} />
+                    <input value={flooring.thickness} onChange={(event) => updateFlooringDraft(index, { thickness: event.target.value })} />
                   </td>
                   <td>
-                    <input value={flooring.brand ?? ""} onChange={(event) => updateFlooring(index, { brand: event.target.value || null })} />
+                    <input value={flooring.brand ?? ""} onChange={(event) => updateFlooringDraft(index, { brand: event.target.value || null })} />
                   </td>
                   <td>
-                    <input value={flooring.name ?? ""} onChange={(event) => updateFlooring(index, { name: event.target.value || null })} />
+                    <input value={flooring.name ?? ""} onChange={(event) => updateFlooringDraft(index, { name: event.target.value || null })} />
                   </td>
-                  <td>
-                    <NumberCell value={flooring.purchase_unit_pyeong} onCommit={(value) => updateFlooring(index, { purchase_unit_pyeong: value })} />
+                  <td className="numeric">
+                    <FormattedNumberCell value={flooring.purchase_unit_pyeong} onCommit={(value) => updateFlooringDraft(index, { purchase_unit_pyeong: value })} ariaLabel="구매단위" />
                   </td>
-                  <td>
-                    <NumberCell value={flooring.retail_krw} onCommit={(value) => updateFlooring(index, { retail_krw: value })} />
+                  <td className="numeric">
+                    <FormattedNumberCell value={flooring.retail_krw} onCommit={(value) => updateFlooringDraft(index, { retail_krw: value })} ariaLabel="소매 단가" />
                   </td>
-                  <td>
-                    {flooring.wholesale_krw == null ? (
-                      "미가져옴"
-                    ) : (
-                      <NumberCell value={flooring.wholesale_krw} onCommit={(value) => updateFlooring(index, { wholesale_krw: value })} />
-                    )}
+                  <td className="numeric">
+                    <FormattedNumberCell value={flooring.wholesale_krw} onCommit={(value) => updateFlooringDraft(index, { wholesale_krw: value })} ariaLabel="원가 단가" />
                   </td>
-                  <td>
-                    <NumberCell
+                  <td className="numeric">
+                    <FormattedNumberCell
                       value={flooring.supplies_krw_per_actual_pyeong}
-                      onCommit={(value) => updateFlooring(index, { supplies_krw_per_actual_pyeong: value })}
+                      onCommit={(value) => updateFlooringDraft(index, { supplies_krw_per_actual_pyeong: value })}
+                      ariaLabel="부자재"
                     />
                   </td>
                 </tr>
@@ -1037,49 +1292,85 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
         <section className="table-wrap">
           <div className="section-heading">
             <h2>공임</h2>
-            <button type="button" className="inline-command" onClick={addLaborCrewRule}>
-              <Plus aria-hidden />
-              인원 기준 추가
-            </button>
+            <div className="button-row">
+              <button type="button" className="primary-action compact-action" onClick={saveLabor} disabled={!laborDirty}>
+                <Save aria-hidden />
+                변경사항 저장
+              </button>
+              <button type="button" className="inline-command" onClick={addLaborCrewRule}>
+                <Plus aria-hidden />
+                인원 기준 추가
+              </button>
+            </div>
           </div>
           <div className="rate-grid">
             {(["helper", "intermediate", "expert"] as LaborGrade[]).map((grade) => (
               <label key={grade}>
                 {gradeLabel(grade)}
-                <NumberCell value={state.rules.daily_labor_rates_krw[grade]} onCommit={(value) => updateLaborRate(grade, value)} />
+                <FormattedNumberCell value={laborRateDrafts[grade]} onCommit={(value) => updateLaborRateDraft(grade, value ?? 0)} ariaLabel={`${gradeLabel(grade)} 일당`} />
               </label>
             ))}
           </div>
-          <table>
+          <table className="data-table labor-table">
+            <colgroup>
+              <col className="col-index" />
+              <col className="col-category" />
+              <col className="col-area-type" />
+              <col className="col-area" />
+              <col className="col-crew" />
+              <col className="col-crew" />
+              <col className="col-crew" />
+            </colgroup>
             <thead>
               <tr>
+                <th>순번</th>
                 <th>종류</th>
                 <th>면적 타입</th>
-                <th>면적</th>
-                <th>조공</th>
-                <th>중기공</th>
-                <th>기공</th>
+                <th className="numeric">면적</th>
+                <th className="numeric">조공</th>
+                <th className="numeric">중기공</th>
+                <th className="numeric">기공</th>
               </tr>
             </thead>
             <tbody>
-              {state.rules.labor_requirements.flatMap((record, recordIndex) =>
-                Object.entries(record.entries).map(([area, crew]) => (
-                  <tr key={`${record.category}-${area}`}>
-                    <td>{labelForCategory(record.category)}</td>
-                    <td>{record.area_type}</td>
-                    <td>{area}평</td>
+              {laborRows.map(({ record, recordIndex, area, crew }, rowIndex) => (
+                  <tr key={`${recordIndex}-${record.category}-${area}`}>
+                    <td className="center">{rowIndex + 1}</td>
                     <td>
-                      <NumberCell value={crew?.helper ?? 0} onCommit={(value) => updateLaborCrew(recordIndex, area, { helper: value })} />
+                      <select
+                        value={record.category ?? ""}
+                        onChange={(event) => updateLaborRecordDraft(recordIndex, { category: event.target.value as Material["category"] })}
+                      >
+                        <option value="">선택</option>
+                        <option value="silk">실크</option>
+                        <option value="narrow_hapji">소폭 합지</option>
+                        <option value="wide_hapji">광폭 합지</option>
+                      </select>
                     </td>
                     <td>
-                      <NumberCell value={crew?.intermediate ?? 0} onCommit={(value) => updateLaborCrew(recordIndex, area, { intermediate: value })} />
+                      <select
+                        value={record.area_type ?? ""}
+                        onChange={(event) => updateLaborRecordDraft(recordIndex, { area_type: event.target.value as AreaType })}
+                      >
+                        <option value="">선택</option>
+                        <option value="평형">평형</option>
+                        <option value="전용">전용</option>
+                      </select>
                     </td>
-                    <td>
-                      <NumberCell value={crew?.expert ?? 0} onCommit={(value) => updateLaborCrew(recordIndex, area, { expert: value })} />
+                    <td className="numeric">
+                      <FormattedNumberCell value={area ? Number(area) : null} onCommit={(value) => updateLaborAreaDraft(recordIndex, area, value == null ? "" : String(value))} ariaLabel="면적" />
+                    </td>
+                    <td className="numeric">
+                      <FormattedNumberCell value={crew?.helper ?? null} onCommit={(value) => updateLaborCrewDraft(recordIndex, area, { helper: value })} ariaLabel="조공" />
+                    </td>
+                    <td className="numeric">
+                      <FormattedNumberCell value={crew?.intermediate ?? null} onCommit={(value) => updateLaborCrewDraft(recordIndex, area, { intermediate: value })} ariaLabel="중기공" />
+                    </td>
+                    <td className="numeric">
+                      <FormattedNumberCell value={crew?.expert ?? null} onCommit={(value) => updateLaborCrewDraft(recordIndex, area, { expert: value })} ariaLabel="기공" />
                     </td>
                   </tr>
-                )),
-              )}
+              ))}
             </tbody>
           </table>
         </section>
@@ -1089,14 +1380,29 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
       <section className="table-wrap">
         <div className="section-heading">
           <h2>카탈로그 링크</h2>
-          <button type="button" className="inline-command" onClick={addCatalog}>
-            <Plus aria-hidden />
-            추가
-          </button>
+          <div className="button-row">
+            <button type="button" className="primary-action compact-action" onClick={saveCatalogs} disabled={!catalogDirty}>
+              <Save aria-hidden />
+              변경사항 저장
+            </button>
+            <button type="button" className="inline-command" onClick={addCatalogDraft}>
+              <Plus aria-hidden />
+              추가
+            </button>
+          </div>
         </div>
-        <table>
+        <table className="data-table catalog-table">
+          <colgroup>
+            <col className="col-index" />
+            <col className="col-name" />
+            <col className="col-brand" />
+            <col className="col-product" />
+            <col className="col-url" />
+            <col className="col-status" />
+          </colgroup>
           <thead>
             <tr>
+              <th>순번</th>
               <th>이름</th>
               <th>브랜드</th>
               <th>제품 연결</th>
@@ -1105,18 +1411,19 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
             </tr>
           </thead>
           <tbody>
-            {state.rules.catalogs.map((catalog, index) => (
+            {catalogDrafts.map((catalog, index) => (
               <tr key={catalog.id}>
+                <td className="center">{index + 1}</td>
                 <td>
-                  <input value={catalog.name} onChange={(event) => updateCatalog(index, { name: event.target.value })} />
+                  <input value={catalog.name} onChange={(event) => updateCatalogDraft(index, { name: event.target.value })} />
                 </td>
                 <td>
-                  <input value={catalog.brand ?? ""} onChange={(event) => updateCatalog(index, { brand: event.target.value || null })} />
+                  <input value={catalog.brand ?? ""} onChange={(event) => updateCatalogDraft(index, { brand: event.target.value || null })} />
                 </td>
                 <td>
                   <select
                     value={catalog.product_relation ?? ""}
-                    onChange={(event) => updateCatalog(index, { product_relation: event.target.value || null })}
+                    onChange={(event) => updateCatalogDraft(index, { product_relation: event.target.value || null })}
                   >
                     <option value="">브랜드 기준</option>
                     {state.rules.materials.map((material) => (
@@ -1127,14 +1434,14 @@ function DataManager({ state, persist }: { state: StoredState; persist: (next: S
                   </select>
                 </td>
                 <td>
-                  <input value={catalog.url} onChange={(event) => updateCatalog(index, { url: event.target.value })} />
+                  <input value={catalog.url} onChange={(event) => updateCatalogDraft(index, { url: event.target.value })} />
                 </td>
                 <td>
                   <button
                     type="button"
                     className="icon-command"
                     title={catalog.active === false ? "활성" : "비활성"}
-                    onClick={() => updateCatalog(index, { active: catalog.active === false })}
+                    onClick={() => updateCatalogDraft(index, { active: catalog.active === false })}
                   >
                     {catalog.active === false ? <RotateCcw aria-hidden /> : <Trash2 aria-hidden />}
                   </button>
@@ -1476,16 +1783,37 @@ function History({ events }: { events: StoredState["history"] }) {
   );
 }
 
-function NumberCell({ value, onCommit }: { value: number | null; onCommit: (value: number) => void }) {
+function FormattedNumberCell({
+  value,
+  onCommit,
+  ariaLabel,
+}: {
+  value: number | null | undefined;
+  onCommit: (value: number | null) => void;
+  ariaLabel: string;
+}) {
   return (
     <input
-      type="number"
-      min={0}
-      value={value ?? ""}
-      onChange={(event) => onCommit(Number(event.target.value))}
-      aria-label="숫자 값"
+      className="numeric-input"
+      inputMode="numeric"
+      value={formatNumberInput(value)}
+      onChange={(event) => onCommit(parseNumberInput(event.target.value))}
+      aria-label={ariaLabel}
     />
   );
+}
+
+function formatNumberInput(value: number | null | undefined) {
+  return value == null ? "" : value.toLocaleString("ko-KR");
+}
+
+function parseNumberInput(value: string) {
+  const normalized = value.replace(/[^\d]/g, "");
+  return normalized ? Number(normalized) : null;
+}
+
+function openDatePicker(input: HTMLInputElement | null) {
+  input?.showPicker?.();
 }
 
 function Step({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
@@ -1500,6 +1828,13 @@ function Step({ title, children, className = "" }: { title: string; children: Re
 type AppRoute = "/" | "/admin";
 type CatalogFilter = { materialId: string | null; brand: string | null; label: string };
 type DataTab = "wallpaper" | "supplies" | "flooring" | "labor" | "catalog";
+type ProductPickerOption = {
+  kind: "wallpaper" | "flooring";
+  value: string;
+  group: string;
+  title: string;
+  subtitle: string;
+};
 type AdminQuoteInfo = {
   inquiryDate: string;
   customerPhone: string;
